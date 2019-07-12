@@ -11,42 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/colorPrimary"
-        app:srcCompat="@drawable/logo" />
-
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginStart="-2dp"
-        android:layout_marginTop="55dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text="@string/app_name"
-        android:textAlignment="center"
-        android:textColor="@color/colorAccent2"
-        android:visibility="visible"
-        tools:background="@color/colorPrimary"
-        tools:textSize="50dp" />
-
-    <TextView
-        android:id="@+id/description"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginStart="1dp"
-        android:layout_marginTop="533dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text="Real time object detector based on OpenCV and YOLOv2"
-        android:textAlignment="center"
-        android:textColor="@color/colorAccent"
-        android:visibility="visible"
-        tools:background="@color/colorPrimary"
-        tools:textSize="25dp" />
-
+        app:srcCompat="@drawable/welcome" />
 
 
 </RelativeLayout>
