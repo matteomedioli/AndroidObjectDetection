@@ -38,7 +38,7 @@ Given all rectangles retrieve from detections stored in **List\<Mat> results**
 (the least 4 numbers are [*center_x, center_y, width, height*]) using  **Dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThresh, indices)** we can perform **Non Maximum Suppression** to generate the optimal bounding box. *classId* is the corresponding index for label of detection in COCO Dataset list *className*.
 
 ## TO DO
-- [ ] Full screen JavaCameraView
+- [ ] Full screen JavaCameraView portrait mode
 - [ ] Speed up JavaCameraView
 - [ ] Add model chioce
 
