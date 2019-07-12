@@ -1,6 +1,6 @@
 # Darknet Android - OpenCV and YOLOv2
 Real time objects detector Android App using **OpenCV 4.1** and **YOLOv2 Darknet model**.
-![Alt text](https://github.com/Ickarus/DarknetAndroid-OpenCV/blob/master/app/src/main/res/drawable/welcome.jpeg?raw=true)
+![Alt text](https://github.com/Ickarus/DarknetAndroid-OpenCV/blob/master/app/src/main/res/drawable/welcome.jpeg?raw=true | width=100)
 
 ## 1.Import OpenCV 4.1 Module in AndroidStudio 3.4.1
 1) Dowload OpenCV SDK from https://sourceforge.net/projects/opencvlibrary/files/4.1.0/opencv-4.1.0-android-sdk.zip/download
