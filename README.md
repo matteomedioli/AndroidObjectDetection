@@ -1,5 +1,11 @@
 # Android Object Detector - OpenCV and YOLOv2
-Real time object detection Android application using **OpenCV 4.1** and **YOLOv2**.
+
+<p align="center">
+  <img src="https://github.com/Ickarus/AndroidObjectDetector-OpenCV/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png">
+</p>
+<p align="center">
+ Real time object detection Android application using OpenCV 4.1 and YOLOv2. 
+</p>
 
 ## 1.Import OpenCV 4.1 Module in AndroidStudio 3.4.1
 1) Dowload OpenCV SDK from https://sourceforge.net/projects/opencvlibrary/files/4.1.0/opencv-4.1.0-android-sdk.zip/download
