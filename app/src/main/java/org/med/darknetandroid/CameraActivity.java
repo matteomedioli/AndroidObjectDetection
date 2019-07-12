@@ -5,27 +5,38 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -43,16 +54,16 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.imgproc.Imgproc;
 
 
-public class CameraActivity extends AppCompatActivity implements CvCameraViewListener2, View.OnTouchListener {
+public class CameraActivity extends AppCompatActivity implements CvCameraViewListener2 {
     private static final String TAG = "CameraActivity";
     private static final int PERMISSIONS_REQUEST = 1;
     private static final String PERMISSION_CAMERA = Manifest.permission.CAMERA;
+    private static final String PERMISSION_STORAGE  = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     private static List<String> classNames;
+    private static List<Scalar> colors=new ArrayList<>();
     private Net net;
     private CameraBridgeViewBase mOpenCvCameraView;
-    Mat mRgba;
-    Mat mRgbaF;
-    Mat mRgbaT;
+    private boolean permissionGranted = false;
 
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -76,16 +87,18 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if(!hasPermission())
-            requestPermission();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        if (!permissionGranted) {
+            checkPermissions();
+        }
         mOpenCvCameraView = findViewById(R.id.CameraView);
         mOpenCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
         //mOpenCvCameraView.setMaxFrameSize(640,480);
         mOpenCvCameraView.setCvCameraViewListener(this);
-
+        classNames = readLabels("labels.txt", this);
+        for(int i=0; i<classNames.size(); i++)
+            colors.add(randomColor());
     }
 
     @Override
@@ -103,12 +116,8 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     @Override
     public void onCameraViewStarted(int width, int height) {
 
-        mRgba = new Mat(height, width, CvType.CV_8UC4);
-        mRgbaF = new Mat(height, width, CvType.CV_8UC4);
-        mRgbaT = new Mat(width, width, CvType.CV_8UC4);
         String modelConfiguration = getAssetsFile("yolov2-tiny.cfg", this);
         String modelWeights = getAssetsFile("yolov2-tiny.weights", this);
-        classNames = readLabels("labels.txt", this);
         net = Dnn.readNetFromDarknet(modelConfiguration, modelWeights);
     }
 
@@ -117,14 +126,11 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     }
 
     @Override
-    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+    public Mat onCameraFrame(CvCameraViewFrame inputFrame){
 
-        mRgba = inputFrame.rgba();
+
         // Rotate mRgba 90 degrees
         Mat frame = inputFrame.rgba();
-        Core.transpose(frame, mRgbaT);
-        Imgproc.resize(mRgbaT, mRgbaF, mRgbaF.size(), 0,0, 0);
-        Core.flip(mRgbaF, mRgba, 1 );
         Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGBA2RGB);
         //Imgproc.GaussianBlur(frame,frame, new Size(5,5), 0);
 
@@ -138,12 +144,15 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         List<String> outBlobNames = net.getUnconnectedOutLayersNames();
 
         net.forward(result, outBlobNames);
-
+        Log.d("DETECT", "netForward success!");
+        Log.d("DETECT", "Frame Size: "+frame.width()+"X"+frame.height());
         float confThreshold = 0.25f;
         List<Integer> clsIds = new ArrayList<>();
         List<Float> confs = new ArrayList<>();
         List<Rect> rects = new ArrayList<>();
         List<String> labels = new ArrayList<>();
+        List<Scalar> clrs = new ArrayList<>();
+        Log.d("DETECT", "LIST MAT SIZE: "+result.size());
         for (int i = 0; i < result.size(); ++i)
         {
             // each row is a candidate detection, the 1st 4 numbers are
@@ -168,9 +177,15 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
                     clsIds.add((int)classIdPoint.x);
                     confs.add(confidence);
-                    DecimalFormat df = new DecimalFormat("#.###");
-                    labels.add(""+classNames.get(clsIds.get(0))+ "  "+df.format(confs.get(0)));
+                    DecimalFormat df = new DecimalFormat("#.##");
+                    Log.d("ID DETECTED", ""+clsIds.toString());
+                    Log.d("ID ADDED", ""+clsIds.get(clsIds.size()-1));
+                    Log.d("ID[0] ADDED", ""+clsIds.get(0));
+                    labels.add(classNames.get(clsIds.get(clsIds.size()-1))+ ": "+df.format(confs.get(i)));
+                    clrs.add(colors.get(clsIds.get(clsIds.size()-1)));
                     rects.add(new Rect(left, top, width, height));
+
+                    Log.d("LABELS DETECT", ""+labels.toString());
                 }
             }
         }
@@ -183,7 +198,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         MatOfRect boxes = new MatOfRect(boxesArray);
         MatOfInt indices = new MatOfInt();
         Dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThresh, indices); //We draw the bounding boxes for objects here//
-
+        Log.d("DETECT", "BEFORE BOX!");
         // Draw result boxes:
         if(!indices.empty())
         {
@@ -192,43 +207,29 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
             {
                 int idx = ind[i];
                 Rect box = boxesArray[idx];
-                Imgproc.rectangle(frame, box.tl(), box.br(), new Scalar(0,0,255), 5);
-                Imgproc.rectangle(frame, new Point(box.x-5, box.y-60), new Point(box.br().x,box.y), new Scalar(0,0,255), Imgproc.FILLED);
-                Imgproc.putText (
-                        frame,                          // Matrix obj of the image
-                        labels.get(i),          // Text to be added
-                        new Point(box.x, box.y-5),               // point
-                        Imgproc.FONT_HERSHEY_SIMPLEX ,      // front face
-                        2,                               // front scale
-                        new Scalar(255, 255, 255),             // Scalar object for color
-                        2                                // Thickness
-                );
+                Imgproc.rectangle(frame, box.tl(), box.br(), clrs.get(idx), 3, 2);
+                Imgproc.putText (frame, labels.get(idx), new Point(box.x, box.y-5), Imgproc.FONT_HERSHEY_SIMPLEX , 1, new Scalar(0, 0, 0),4);
+                Imgproc.putText (frame, labels.get(idx), new Point(box.x, box.y-5), Imgproc.FONT_HERSHEY_SIMPLEX , 1, new Scalar(255, 255, 255),2);
+                Log.d("DETECT", labels.get(idx));
+                //saveFrame(frame);
             }
         }
 
         return frame;
     }
 
+    private boolean checkPermissions() {
 
-    private boolean hasPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return checkSelfPermission(PERMISSION_CAMERA) == PackageManager.PERMISSION_GRANTED;
+        int permissionCheck = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.CAMERA);
+
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] {PERMISSION_CAMERA, PERMISSION_STORAGE}, PERMISSIONS_REQUEST);
+            return false;
         } else {
             return true;
         }
-    }
 
-    private void requestPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (shouldShowRequestPermissionRationale(PERMISSION_CAMERA)) {
-                Toast.makeText(
-                        CameraActivity.this,
-                        "Camera permission is required for this demo",
-                        Toast.LENGTH_LONG)
-                        .show();
-            }
-            requestPermissions(new String[] {PERMISSION_CAMERA}, PERMISSIONS_REQUEST);
-        }
     }
 
 
@@ -283,11 +284,34 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         return labelsArray;
     }
 
-
-    @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        return false;
+    private Scalar randomColor() {
+        Random random = new Random();
+        int r = random.nextInt(255);
+        int g = random.nextInt(255);
+        int b = random.nextInt(255);
+        return new Scalar(r,g,b);
     }
+
+    private void saveFrame(Mat frame) {
+        try {
+            ; // see other conf types
+            Bitmap bmp = Bitmap.createBitmap(frame.width(), frame.height(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(frame, bmp);
+            String path = Environment.getExternalStorageDirectory().toString();
+            OutputStream fOut = null;
+            File file = new File(path, "foto.jpg"); // the File to save , append increasing numeric counter to prevent files from getting overwritten.
+            fOut = new FileOutputStream(file);
+            bmp.compress(Bitmap.CompressFormat.JPEG, 85, fOut); // saving the Bitmap to a file compressed as a JPEG with 85% compression rate
+            fOut.flush(); // Not really required
+            fOut.close(); // do not forget to close the stream
+            MediaStore.Images.Media.insertImage(getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
+            //Toast.makeText(getApplicationContext(), "Detect object, screen captured",Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Log.e("ERROR", "" + e);
+        }
+    }
+
+
 
     @Override
     public void onDestroy() {
