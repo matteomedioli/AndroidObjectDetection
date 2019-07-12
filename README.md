@@ -1,4 +1,4 @@
-# Android Object Detector - OpenCV and YOLOv2
+# Android Object Detection - OpenCV and YOLOv2
 
 <p align="center">
   <img src="https://github.com/Ickarus/AndroidObjectDetector-OpenCV/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png">
