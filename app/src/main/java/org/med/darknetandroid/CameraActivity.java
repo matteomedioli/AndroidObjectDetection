@@ -2,31 +2,16 @@ package org.med.darknetandroid;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Camera;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +21,7 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
@@ -94,7 +77,6 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         }
         mOpenCvCameraView = findViewById(R.id.CameraView);
         mOpenCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
-        //mOpenCvCameraView.setMaxFrameSize(640,480);
         mOpenCvCameraView.setCvCameraViewListener(this);
         classNames = readLabels("labels.txt", this);
         for(int i=0; i<classNames.size(); i++)
@@ -132,8 +114,6 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         // Rotate mRgba 90 degrees
         Mat frame = inputFrame.rgba();
         Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGBA2RGB);
-        //Imgproc.GaussianBlur(frame,frame, new Size(5,5), 0);
-
         Size frame_size = new Size(416, 416);
         Scalar mean = new Scalar(127.5);
 
@@ -144,15 +124,12 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         List<String> outBlobNames = net.getUnconnectedOutLayersNames();
 
         net.forward(result, outBlobNames);
-        Log.d("DETECT", "netForward success!");
-        Log.d("DETECT", "Frame Size: "+frame.width()+"X"+frame.height());
         float confThreshold = 0.25f;
         List<Integer> clsIds = new ArrayList<>();
         List<Float> confs = new ArrayList<>();
         List<Rect> rects = new ArrayList<>();
         List<String> labels = new ArrayList<>();
         List<Scalar> clrs = new ArrayList<>();
-        Log.d("DETECT", "LIST MAT SIZE: "+result.size());
         for (int i = 0; i < result.size(); ++i)
         {
             // each row is a candidate detection, the 1st 4 numbers are
@@ -178,14 +155,9 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
                     clsIds.add((int)classIdPoint.x);
                     confs.add(confidence);
                     DecimalFormat df = new DecimalFormat("#.##");
-                    Log.d("ID DETECTED", ""+clsIds.toString());
-                    Log.d("ID ADDED", ""+clsIds.get(clsIds.size()-1));
-                    Log.d("ID[0] ADDED", ""+clsIds.get(0));
                     labels.add(classNames.get(clsIds.get(clsIds.size()-1))+ ": "+df.format(confs.get(i)));
                     clrs.add(colors.get(clsIds.get(clsIds.size()-1)));
                     rects.add(new Rect(left, top, width, height));
-
-                    Log.d("LABELS DETECT", ""+labels.toString());
                 }
             }
         }
@@ -198,7 +170,6 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         MatOfRect boxes = new MatOfRect(boxesArray);
         MatOfInt indices = new MatOfInt();
         Dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThresh, indices); //We draw the bounding boxes for objects here//
-        Log.d("DETECT", "BEFORE BOX!");
         // Draw result boxes:
         if(!indices.empty())
         {
@@ -210,8 +181,6 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
                 Imgproc.rectangle(frame, box.tl(), box.br(), clrs.get(idx), 3, 2);
                 Imgproc.putText (frame, labels.get(idx), new Point(box.x, box.y-5), Imgproc.FONT_HERSHEY_SIMPLEX , 1, new Scalar(0, 0, 0),4);
                 Imgproc.putText (frame, labels.get(idx), new Point(box.x, box.y-5), Imgproc.FONT_HERSHEY_SIMPLEX , 1, new Scalar(255, 255, 255),2);
-                Log.d("DETECT", labels.get(idx));
-                //saveFrame(frame);
             }
         }
 
@@ -291,26 +260,6 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         int b = random.nextInt(255);
         return new Scalar(r,g,b);
     }
-
-    private void saveFrame(Mat frame) {
-        try {
-            ; // see other conf types
-            Bitmap bmp = Bitmap.createBitmap(frame.width(), frame.height(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(frame, bmp);
-            String path = Environment.getExternalStorageDirectory().toString();
-            OutputStream fOut = null;
-            File file = new File(path, "foto.jpg"); // the File to save , append increasing numeric counter to prevent files from getting overwritten.
-            fOut = new FileOutputStream(file);
-            bmp.compress(Bitmap.CompressFormat.JPEG, 85, fOut); // saving the Bitmap to a file compressed as a JPEG with 85% compression rate
-            fOut.flush(); // Not really required
-            fOut.close(); // do not forget to close the stream
-            MediaStore.Images.Media.insertImage(getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
-            //Toast.makeText(getApplicationContext(), "Detect object, screen captured",Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            Log.e("ERROR", "" + e);
-        }
-    }
-
 
 
     @Override
