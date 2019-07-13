@@ -6,6 +6,9 @@
 <p align="center">
  Real time object detection Android application using OpenCV 4.1 and YOLOv3. 
 </p>
+<p align="center">
+YOLO: https://pjreddie.com/darknet/yolo/
+</p>
 
 ## 1.Import OpenCV 4.1 Module in AndroidStudio 3.4.1
 1) Dowload OpenCV SDK from https://sourceforge.net/projects/opencvlibrary/files/4.1.0/opencv-4.1.0-android-sdk.zip/download
@@ -29,7 +32,8 @@ It has 2 main private instance variable: a **net** (*org.opencv.dnn.Net*) and a 
 Basically has three main features:
 
 #### a) Load Network
-Load convolutional net from *\*.cfg* and *\*.weights* files and read *labels name* (COCO Dataset) when calls onCameraViewStarted() using  **Dnn.readNetFromDarknet(String path_cfg, String path_weights)**
+Load convolutional net from *\*.cfg* and *\*.weights* files and read *labels name* (COCO Dataset) in assets folder when calls onCameraViewStarted() using  **Dnn.readNetFromDarknet(String path_cfg, String path_weights)**.  
+**NOTE**: this repo doesn't contain weights file. You have to download it from YOLO site.
 
 
 #### b) Detection from camera preview
