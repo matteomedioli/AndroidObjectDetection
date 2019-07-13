@@ -1,10 +1,10 @@
-# Android Object Detection - OpenCV and YOLOv2
+# Android Object Detection - OpenCV and YOLOv3
 
 <p align="center">
   <img src="https://github.com/Ickarus/AndroidObjectDetector-OpenCV/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png">
 </p>
 <p align="center">
- Real time object detection Android application using OpenCV 4.1 and YOLOv2. 
+ Real time object detection Android application using OpenCV 4.1 and YOLOv3. 
 </p>
 
 ## 1.Import OpenCV 4.1 Module in AndroidStudio 3.4.1
@@ -34,7 +34,7 @@ Load convolutional net from *\*.cfg* and *\*.weights* files and read *labels nam
 
 #### b) Detection from camera preview
 Iteratively generate a frame from CameraBridgeViewBase preview and analize it as an image. Real time detection and the frames flow generation is managed by **onCameraFrame(CvCameraViewFrame inputFrame)**.
-Preview frame is translate in a Mat matrix and set as input for **Dnn.blobFromImage(frame, scaleFactor, frame_size, mean, true, false)** to detect blobs in camera preview. Note that **frame_size** is necessarly 416x416 for YOLOv2 Model (you can find input dimension in *\*.cfg* file).
+Preview frame is translate in a Mat matrix and set as input for **Dnn.blobFromImage(frame, scaleFactor, frame_size, mean, true, false)** to detect blobs in camera preview. Note that **frame_size** is necessarly 416x416 for YOLOv3 Model (you can find input dimension in *\*.cfg* file).
 The detection phase is implemented by **net.forward(List\<Mat> results, List\<String> outNames)** that runs forward pass to compute output of layer with name *outName*. In *results* the method writes all detections in preview frame as Mat objects.
 Theese Mat instances contain all information such as positions and labels of detected objects.
 
