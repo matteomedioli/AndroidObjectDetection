@@ -44,8 +44,8 @@ Theese Mat instances contain all information such as positions and labels of det
 
 
 #### c) Draw bounding-box and labelling
-Given all rectangles retrieve from detections stored in **List\<Mat> results**
-(the least 4 numbers are [*center_x, center_y, width, height*]) using  **Dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThresh, indices)** we can perform **Non Maximum Suppression** to generate the optimal bounding box. *classId* is the corresponding index for label of detection in COCO Dataset list *className*.
+Performing **Non Maximum Suppression** by YOLO, in **List\<Mat> results** are stored all coordinates of optimal bounding boxes
+(the lst 4 numbers are [*center_x, center_y, width, height*]). *classId* is the corresponding index for label of detection in COCO Dataset list *className*.
 
 ## TO DO
 - [ ] Full screen JavaCameraView portrait mode
