@@ -48,7 +48,7 @@ Theese Mat instances contain all information such as positions and labels of det
 
 #### c) Draw bounding-box and labelling
 Performing **Non Maximum Suppression** by YOLO, in **List\<Mat> results** are stored all coordinates of optimal bounding boxes
-(the lst 4 numbers are [*center_x, center_y, width, height*]). *classId* is the corresponding index for label of detection in COCO Dataset list *className*.
+(the first 4 numbers are [*center_x, center_y, width, height*], followed by all class probabilities). *classId* is the corresponding index for label of detection in COCO Dataset list *className*.
 
 ## TO DO
 - [ ] Full screen JavaCameraView portrait mode
